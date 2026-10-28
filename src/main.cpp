@@ -33,18 +33,55 @@ void setup()
   // muitas linhas e tomar muito espaco no codigo.
   
   // Serial.println(pedirDadosPokemonApiPorId(10007));
-
+  
   JsonDocument docPokemon;
-
-  Serial.println(ESP.getFreeHeap());
+  JsonDocument docFiltro;
+  
+  docFiltro["name"] = true;
+  docFiltro["id"] = true;
+  docFiltro["abilities"][0]["ability"]["name"] = true;
+  docFiltro["forms"][0]["name"] = true;
+  docFiltro["types"][0]["type"]["name"] = true;
+  
   String jsonVindoDaApiPokemon = pedirDadosPokemonApiPorId(10007);
-  Serial.println(ESP.getFreeHeap());
-  DeserializationError codigoStatusJSON = deserializeJson(docPokemon, jsonVindoDaApiPokemon);
-  Serial.println(ESP.getFreeHeap());
+  
+  DeserializationError codigoStatusJSON = deserializeJson(docPokemon, jsonVindoDaApiPokemon, DeserializationOption::Filter(docFiltro));
+  
+  String nomePokemon = docPokemon["name"];
+  unsigned int idPokemon = docPokemon["id"];
+  
+  JsonArrayConst habilidadesPokemon = docPokemon["abilities"];
+  JsonArrayConst formasPokemon = docFiltro["forms"];
+  JsonArrayConst tiposPokemon = docFiltro["types"];
+  
+  Serial.printf("Nome do Pokemon: %s\n\r", nomePokemon.c_str());
+  Serial.printf("Id do Pokemon: %d\n\r", idPokemon);
 
-  jsonVindoDaApiPokemon.end(); //* desalocar memoria desse objeto pois nao vou usar mais
+  Serial.printf("Habilidades do Pokemon: \n\r");
 
-  Serial.println(ESP.getFreeHeap());
+  for(int i = 0; i < habilidadesPokemon.size(); i++)
+  {
+    Serial.print(habilidadesPokemon[i]["ability"]["name"].as<const char*>()); // ?
+    Serial.print(i == (habilidadesPokemon.size() - 1) ? ".\n\r" : ",");
+  }
+
+  Serial.printf("Formas possiveis do Pokemon: \n\r");
+  
+  for(int i = 0; i < formasPokemon.size(); i++)
+  {
+    Serial.print(formasPokemon[i]["name"].as<const char*>()); // ?
+    Serial.print(i == (formasPokemon.size() - 1) ? ".\n\r" : ",");
+  }
+
+  Serial.printf("Tipos do Pokemon: \n\r");
+  
+  for(int i = 0; i < tiposPokemon.size(); i++)
+  {
+    Serial.print(tiposPokemon[i]["type"]["name"].as<const char*>()); // ?
+    Serial.print(i == (tiposPokemon.size() - 1) ? ".\n\r" : ",");
+  }
+
+  jsonVindoDaApiPokemon.clear(); //* desalocar memoria desse objeto pois nao vou usar mais
 }
 
 
@@ -64,11 +101,9 @@ String pedirDadosPokemonApiPorId (unsigned int idPokemon)
   //* inicia o objeto instanciado do tipo http para pegar textos http na internet
   textoJsonHttp.begin(enderecoAPI); // passando o endereco
 
-  Serial.println(ESP.getPsramSize());
   //* o metodo get acessa o endereco passado no begin e baixa as informacoes e retorna o codigo http de status
   //* como 200 para ok e 404 para pagina nao encontrada
   int codigoHTTP = textoJsonHttp.GET(); // pegando todo o conteudo da URL
-  Serial.println(ESP.getPsramSize());
 
   // clausula de guarda: se o erro nao for ok, para a funcao.
   if(codigoHTTP != 200)

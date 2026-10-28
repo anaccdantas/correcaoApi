@@ -7,6 +7,7 @@
 //* texto simples? USAR PONTEIRO (CHAR)
 //? texto complexo? USAR STRING
 String pedirDadosPokemonApiPorId (unsigned int idPokemon); // convertido para string pois o texto será manipulado.
+void printPokemon(unsigned int idDoPokemon);
 
 
 const char *nomeRedeWiFi = "SENAI EDUCACIONAL";
@@ -28,73 +29,24 @@ void setup()
   }
 
   Serial.printf("\n\rConectado!\n\r"); 
-  // é mais profissional usar o printf ao inves do println pois é possível
-  // adicionar texto e o "\n\r" (pula linha, como o println) para evitar escrever
-  // muitas linhas e tomar muito espaco no codigo.
-  
-  // Serial.println(pedirDadosPokemonApiPorId(10007));
-  
-  JsonDocument docPokemon;
-  JsonDocument docFiltro;
-  
-  docFiltro["name"] = true;
-  docFiltro["id"] = true;
-  docFiltro["abilities"][0]["ability"]["name"] = true;
-  docFiltro["forms"][0]["name"] = true;
-  docFiltro["types"][0]["type"]["name"] = true;
-  
-  String jsonVindoDaApiPokemon = pedirDadosPokemonApiPorId(10007);
-  
-  DeserializationError codigoStatusJSON = deserializeJson(docPokemon, jsonVindoDaApiPokemon, DeserializationOption::Filter(docFiltro));
-  
-  String nomePokemon = docPokemon["name"];
-  unsigned int idPokemon = docPokemon["id"];
-  
-  JsonArrayConst habilidadesPokemon = docPokemon["abilities"];
-  JsonArrayConst formasPokemon = docFiltro["forms"];
-  JsonArrayConst tiposPokemon = docFiltro["types"];
-  
-  Serial.printf("Nome do Pokemon: %s\n\r", nomePokemon.c_str());
-  Serial.printf("Id do Pokemon: %d\n\r", idPokemon);
 
-  Serial.printf("Habilidades do Pokemon: \n\r");
-
-  for(int i = 0; i < habilidadesPokemon.size(); i++)
-  {
-    Serial.print(habilidadesPokemon[i]["ability"]["name"].as<const char*>()); // ?
-    Serial.print(i == (habilidadesPokemon.size() - 1) ? ".\n\r" : ",");
-  }
-
-  Serial.printf("Formas possiveis do Pokemon: \n\r");
-  
-  for(int i = 0; i < formasPokemon.size(); i++)
-  {
-    Serial.print(formasPokemon[i]["name"].as<const char*>()); // ?
-    Serial.print(i == (formasPokemon.size() - 1) ? ".\n\r" : ",");
-  }
-
-  Serial.printf("Tipos do Pokemon: \n\r");
-  
-  for(int i = 0; i < tiposPokemon.size(); i++)
-  {
-    Serial.print(tiposPokemon[i]["type"]["name"].as<const char*>()); // ?
-    Serial.print(i == (tiposPokemon.size() - 1) ? ".\n\r" : ",");
-  }
-
-  jsonVindoDaApiPokemon.clear(); //* desalocar memoria desse objeto pois nao vou usar mais
+  randomSeed(10);
 }
 
 
 void loop() 
 {
+  unsigned int idPokemonAleatorio = random(1, 1026);
 
+  printPokemon(idPokemonAleatorio);
+
+  delay(5000);
 }
 
 String pedirDadosPokemonApiPorId (unsigned int idPokemon)
 {
   String resposta = "";
-
-  enderecoAPI = enderecoAPI + idPokemon + "/";
+  String enderecoPesquisado = enderecoAPI + idPokemon + "/";
   
   HTTPClient textoJsonHttp; // criando um navegador; estamos criando uma nova pagina http
   
@@ -119,3 +71,54 @@ String pedirDadosPokemonApiPorId (unsigned int idPokemon)
   return resposta;
 }
 
+void printPokemon(unsigned int idDoPokemon)
+{
+  JsonDocument docPokemon;
+  JsonDocument docFiltro;
+  
+  docFiltro["name"] = true;
+  docFiltro["id"] = true;
+  docFiltro["abilities"][0]["ability"]["name"] = true;
+  docFiltro["forms"][0]["name"] = true;
+  docFiltro["types"][0]["type"]["name"] = true;
+  
+  String jsonVindoDaApiPokemon = pedirDadosPokemonApiPorId(idDoPokemon);
+  
+  DeserializationError codigoStatusJSON = deserializeJson(docPokemon, jsonVindoDaApiPokemon, DeserializationOption::Filter(docFiltro));
+  
+  String nomePokemon = docPokemon["name"];
+  unsigned int idPokemon = docPokemon["id"];
+  
+  JsonArrayConst habilidadesPokemon = docPokemon["abilities"];
+  JsonArrayConst formasPokemon = docFiltro["forms"];
+  JsonArrayConst tiposPokemon = docFiltro["types"];
+  
+  Serial.printf("Nome do Pokemon: %s\n\r", nomePokemon.c_str());
+  Serial.printf("Id do Pokemon: %d\n\r", idPokemon);
+
+  Serial.printf("Habilidades do Pokemon: ");
+
+  for(int i = 0; i < habilidadesPokemon.size(); i++)
+  {
+    Serial.print(habilidadesPokemon[i]["ability"]["name"].as<const char*>()); // ?
+    Serial.print(i == (habilidadesPokemon.size() - 1) ? ".\n\r" : ",");
+  }
+
+  Serial.printf("Formas possiveis do Pokemon: ");
+  
+  for(int i = 0; i < formasPokemon.size(); i++)
+  {
+    Serial.print(formasPokemon[i]["name"].as<const char*>()); // ?
+    Serial.print(i == (formasPokemon.size() - 1) ? ".\n\r" : ",");
+  }
+
+  Serial.printf("Tipos do Pokemon: ");
+  
+  for(int i = 0; i < tiposPokemon.size(); i++)
+  {
+    Serial.print(tiposPokemon[i]["type"]["name"].as<const char*>()); // ?
+    Serial.print(i == (tiposPokemon.size() - 1) ? ".\n\r" : ",");
+  }
+
+  jsonVindoDaApiPokemon.clear(); //* desalocar memoria desse objeto pois nao vou usar mais
+}

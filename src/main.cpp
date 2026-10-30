@@ -61,7 +61,6 @@ String pedirDadosPokemonApiPorId (unsigned int idPokemon)
   if(codigoHTTP != 200)
   {
     resposta = "Erro ao acessar o endereco: " + codigoHTTP;
-    return resposta;
   }
 
   resposta = textoJsonHttp.getString(); // passando o conteudo no endereco como string para a variavel resposta
